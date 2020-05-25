@@ -28,8 +28,8 @@ class Experiment(object):
     def run_dbscan(dataset, eps, min_samples):
         dataset_scaled = StandardScaler().fit_transform(dataset)
         dataset_norm = normalize(dataset_scaled)
-        clusterer = DBSCAN(eps = eps, min_samples = min_samples).fit(dataset)
-        return clusterer.fit_predict(dataset)
+        clusterer = DBSCAN(eps = eps, min_samples = min_samples).fit(dataset_norm)
+        return clusterer.fit_predict(dataset_norm)
 
     @staticmethod
     def example():
@@ -63,9 +63,9 @@ class Experiment(object):
 if __name__ == "__main__":
     # np.set_printoptions(threshold=sys.maxsize)
 
-    data, classes = Experiment.read_csv("Aggregation.csv")
-    h_clusterer_labels = Experiment.run_hdbscan(data, 0.042, 7)
-    d_clusterer_labels = Experiment.run_dbscan(data, 0.042, 7)
+    data, classes = Experiment.read_csv("Diamond9.csv")
+    h_clusterer_labels = Experiment.run_hdbscan(data, 0.03, 12)
+    d_clusterer_labels = Experiment.run_dbscan(data, 0.03, 12)
     # Experiment.example()
 
     print("Number of clusters found by HDBSCAN: %d" % len(set(h_clusterer_labels)))
