@@ -16,6 +16,7 @@ class Experiment(object):
         file = open(os.path.join("datasets", dataset_name))
         reader = csv.reader(file)
 
+        headers = next(reader, None)
         for col in reader:
             Experiment.dataset.append(Point(col[0], col[1], col[2]))
 
