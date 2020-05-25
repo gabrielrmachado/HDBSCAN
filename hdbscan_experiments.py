@@ -7,6 +7,7 @@ import sklearn.metrics as metrics
 from sklearn.preprocessing import StandardScaler
 import csv
 import os
+import sys
 
 class Experiment(object):
 
@@ -32,7 +33,7 @@ class Experiment(object):
                                     random_state=0)
 
         X = StandardScaler().fit_transform(X)
-        
+
         db = DBSCAN(eps=0.3, min_samples=10).fit(X)
         core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
         core_samples_mask[db.core_sample_indices_] = True
@@ -55,13 +56,17 @@ class Experiment(object):
             % metrics.silhouette_score(X, labels))
 
 if __name__ == "__main__":
+    # np.set_printoptions(threshold=sys.maxsize)
+
     data, classes = Experiment.read_csv("Aggregation.csv")
-    h_clusterer_labels = Experiment.run_hdbscan(data, 0.0420, 7)
-    d_clusterer_labels = Experiment.run_dbscan(data, 0.0420, 7)
+    h_clusterer_labels = Experiment.run_hdbscan(data, 0.042, 12)
+    d_clusterer_labels = Experiment.run_dbscan(data, 0.0218, 14)
     # Experiment.example()
 
+    print("Number of clusters found by HDBSCAN: %d" % len(set(h_clusterer_labels)))
     print(h_clusterer_labels)
+    print("Number of clusters found by DBSCAN: %d" % len(set(d_clusterer_labels)))
     print(d_clusterer_labels)
 
-    print(metrics.fowlkes_mallows_score(classes, h_clusterer_labels))
-    print(metrics.fowlkes_mallows_score(classes, d_clusterer_labels))
+    print("FM Index (HDBSCAN): {0}".format(metrics.fowlkes_mallows_score(classes, h_clusterer_labels)))
+    print("FM Index (DBSCAN): {0}".format(metrics.fowlkes_mallows_score(classes, d_clusterer_labels)))
