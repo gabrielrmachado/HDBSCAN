@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.datasets import make_blobs
 import sklearn.metrics as metrics
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import normalize 
 import csv
 import os
 import sys
@@ -18,11 +19,15 @@ class Experiment(object):
 
     @staticmethod
     def run_hdbscan(dataset, eps, min_cluster_size):
+        dataset_scaled = StandardScaler().fit_transform(dataset)
+        dataset_norm = normalize(dataset_scaled)
         clusterer = HDBSCAN(cluster_selection_epsilon = eps, min_cluster_size = min_cluster_size)
-        return clusterer.fit_predict(dataset)
+        return clusterer.fit_predict(dataset_norm)
 
     @staticmethod
     def run_dbscan(dataset, eps, min_samples):
+        dataset_scaled = StandardScaler().fit_transform(dataset)
+        dataset_norm = normalize(dataset_scaled)
         clusterer = DBSCAN(eps = eps, min_samples = min_samples).fit(dataset)
         return clusterer.fit_predict(dataset)
 
@@ -59,8 +64,8 @@ if __name__ == "__main__":
     # np.set_printoptions(threshold=sys.maxsize)
 
     data, classes = Experiment.read_csv("Aggregation.csv")
-    h_clusterer_labels = Experiment.run_hdbscan(data, 0.042, 12)
-    d_clusterer_labels = Experiment.run_dbscan(data, 0.0218, 14)
+    h_clusterer_labels = Experiment.run_hdbscan(data, 0.042, 7)
+    d_clusterer_labels = Experiment.run_dbscan(data, 0.042, 7)
     # Experiment.example()
 
     print("Number of clusters found by HDBSCAN: %d" % len(set(h_clusterer_labels)))
