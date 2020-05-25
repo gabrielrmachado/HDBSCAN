@@ -16,10 +16,8 @@ class Experiment(object):
         file = open(os.path.join("datasets", dataset_name))
         reader = csv.reader(file)
 
-        i = 1
         for col in reader:
             Experiment.dataset.append(Point(col[0], col[1], col[2]))
-            i = i + 1
 
     @staticmethod
     def print_dataset():
