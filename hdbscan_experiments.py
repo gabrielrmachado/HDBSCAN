@@ -5,6 +5,7 @@ import pandas as pd
 import sklearn.metrics as metrics
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import normalize 
+from sklearn import preprocessing
 import itertools
 import csv
 import os
@@ -19,42 +20,41 @@ class Experiment(object):
 
     @staticmethod
     def __run_hdbscan(dataset, eps, min_cluster_size):
-        dataset_scaled = StandardScaler().fit_transform(dataset)
-        dataset_norm = normalize(dataset_scaled)
         clusterer = HDBSCAN(cluster_selection_epsilon = eps, min_cluster_size = min_cluster_size)
-        return clusterer.fit_predict(dataset_norm)
+        return clusterer.fit_predict(dataset)
 
     @staticmethod
     def __run_dbscan(dataset, eps, min_samples):
-        dataset_scaled = StandardScaler().fit_transform(dataset)
-        dataset_norm = normalize(dataset_scaled)
-        clusterer = DBSCAN(eps = eps, min_samples = min_samples).fit(dataset_norm)
-        return clusterer.fit_predict(dataset_norm)
+        clusterer = DBSCAN(eps = eps, min_samples = min_samples)
+        return clusterer.fit_predict(preprocessing.MinMaxScaler().fit_transform(dataset))
 
     @staticmethod
-    def baseline_1(dataset_name, eps_hdbscan, minPts_hdbscan, eps_dbscan, minPts_dbscan):
+    def baseline_1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan):
         data, classes = Experiment.__read_csv(dataset_name)
 
         print(dataset_name.upper())
+        if dataset_name.find("t7") > 0:
+            data = preprocessing.MinMaxScaler().fit_transform(data)
         d_clusterer_labels = Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
         h_clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan)
 
         print("Number of clusters found by DBSCAN: %d" % len(set(d_clusterer_labels)))
         print("Number of clusters found by HDBSCAN: %d\n" % len(set(h_clusterer_labels)))
 
-        print("FM Index (HDBSCAN): {0}".format(metrics.fowlkes_mallows_score(classes, h_clusterer_labels)))
-        print("FM Index (DBSCAN): {0}\n\n".format(metrics.fowlkes_mallows_score(classes, d_clusterer_labels)))
-
-
+        print("FM Index (DBSCAN): {0}".format(metrics.fowlkes_mallows_score(classes, d_clusterer_labels)))
+        print("FM Index (HDBSCAN): {0}\n".format(metrics.fowlkes_mallows_score(classes, h_clusterer_labels)))
+        
+        print("Accuracy (DBSCAN): {0}".format(metrics.accuracy_score(classes, d_clusterer_labels)))
+        print("Accuracy (HDBSCAN): {0}\n\n".format(metrics.accuracy_score(classes, h_clusterer_labels)))
 
 if __name__ == "__main__":
     # np.set_printoptions(threshold=sys.maxsize)
     parameters = [
         ["Aggregation.csv", 0.042, 7, 0.042, 7],
-        ["diamond9.csv", 0.03, 12, 0.03, 12],
-        ["cluto-t4-8k.csv", 0.02, 25, 0.02, 25],
+        ["diamond9.csv", 0.03, 12, 0.03, 10],
+        ["cluto-t4-8k.csv", 0.02, 25, 0.02, 15],
         ["cluto-t5-8k.csv", 0.02, 25, 0.02, 25],
-        ["cluto-t7-10k.csv", 0.025, 12, 0.025, 28],
+        ["cluto-t7-10k.csv", 0.025, 28, 0.025, 28],
         ["cluto-t8-8k.csv", 0.0218, 14, 0.0218, 14]]
 
     for param in parameters:
