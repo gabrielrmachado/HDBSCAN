@@ -1,41 +1,36 @@
 import hdbscan
+import numpy as np
+import pandas as pd
+from sklearn.datasets import make_blobs
 import csv
 import os
 
-class Point:
-    def __init__(self, x, y, cl):
-        self.x = x
-        self.y = y
-        self.cl = cl
-
 class Experiment(object):
-    dataset = []
 
     @staticmethod
     def read_csv(dataset_name):
-        file = open(os.path.join("datasets", dataset_name))
-        reader = csv.DictReader(file, delimiter=',')
-
-        for col in reader:
-            Experiment.dataset.append(Point(col["X"], col["Y"], col["Class"]))
+        df = pd.read_csv(os.path.join("datasets", dataset_name), sep=',', header = 0)
+        return df.values
 
     @staticmethod
-    def print_dataset():
-        size = len(Experiment.dataset)
-        if size == 0: print("No dataset read yet...")
-        else:
-            i = 1
-            for data in Experiment.dataset:
-                print("Point {0}: x: {1}, y: {2}, class: {3}".format(i, data.x, data.y, data.cl))
-                i = i + 1
+    def run_hdbscan(dataset, min_cluster_size):
+        clusterer = hdbscan.HDBSCAN(min_cluster_size)
+        clusterer_labels = clusterer.fit_predict(dataset)
+
+        print(clusterer_labels)
 
 if __name__ == "__main__":
-    Experiment.read_csv("Aggregation.csv")
-    Experiment.print_dataset()
+    dataset = Experiment.read_csv("Aggregation.csv")
+    data = dataset[:, :2]
+    classes = dataset[:, 2]
+    print(data)
+    print(classes)
+    # Experiment.run_hdbscan(7)
 
-# data, _ = make_blobs(1000)
+    # data, _ = make_blobs(1000)
 
-# clusterer = hdbscan.HDBSCAN(min_cluster_size=10)
-# cluster_labels = clusterer.fit_predict(data)
+    # clusterer = hdbscan.HDBSCAN(min_cluster_size=10)
+    # cluster_labels = clusterer.fit_predict(data)
 
-# print(cluster_labels)
+    # # print(cluster_labels)
+    # print(data)
