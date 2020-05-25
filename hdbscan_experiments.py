@@ -14,11 +14,10 @@ class Experiment(object):
     @staticmethod
     def read_csv(dataset_name):
         file = open(os.path.join("datasets", dataset_name))
-        reader = csv.reader(file)
+        reader = csv.DictReader(file, delimiter=',')
 
-        headers = next(reader, None)
         for col in reader:
-            Experiment.dataset.append(Point(col[0], col[1], col[2]))
+            Experiment.dataset.append(Point(col["X"], col["Y"], col["Class"]))
 
     @staticmethod
     def print_dataset():
