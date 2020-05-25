@@ -19,6 +19,7 @@ class Experiment(object):
         clusterer = HDBSCAN(min_cluster_size)
         return clusterer.fit_predict(dataset)
 
+    @staticmethod
     def run_dbscan(dataset, min_cluster_size, eps):
         return DBSCAN(eps = eps, min_samples = min_cluster_size).fit_predict(dataset)
 
