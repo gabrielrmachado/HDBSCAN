@@ -33,8 +33,10 @@ class Experiment(object):
         data, classes = Experiment.__read_csv(dataset_name)
 
         print(dataset_name.upper())
+        
         if dataset_name.find("t7") > 0:
             data = preprocessing.MinMaxScaler().fit_transform(data)
+
         d_clusterer_labels = Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
         h_clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan)
 
