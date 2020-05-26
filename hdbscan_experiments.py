@@ -26,16 +26,14 @@ class Experiment(object):
     @staticmethod
     def __run_dbscan(dataset, eps, min_samples):
         clusterer = DBSCAN(eps = eps, min_samples = min_samples)
-        return clusterer.fit_predict(preprocessing.MinMaxScaler().fit_transform(dataset))
+        return clusterer.fit_predict(dataset)
 
     @staticmethod
     def baseline_1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan):
         data, classes = Experiment.__read_csv(dataset_name)
 
+        # data = StandardScaler().fit_transform(data)
         print(dataset_name.upper())
-        
-        if dataset_name.find("t7") > 0:
-            data = preprocessing.MinMaxScaler().fit_transform(data)
 
         d_clusterer_labels = Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
         h_clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan)
@@ -53,8 +51,8 @@ if __name__ == "__main__":
     # np.set_printoptions(threshold=sys.maxsize)
     parameters = [
         ["Aggregation.csv", 0.042, 7, 0.042, 7],
-        ["diamond9.csv", 0.03, 12, 0.03, 10],
-        ["cluto-t4-8k.csv", 0.02, 25, 0.02, 15],
+        ["diamond9.csv", 0.03, 12, 0.03, 12],
+        ["cluto-t4-8k.csv", 0.02, 25, 0.02, 25],
         ["cluto-t5-8k.csv", 0.02, 25, 0.02, 25],
         ["cluto-t7-10k.csv", 0.025, 28, 0.025, 28],
         ["cluto-t8-8k.csv", 0.0218, 14, 0.0218, 14]]
