@@ -22,7 +22,7 @@ def validation(inputFile):
 
     # Create matMap list where there is the correspondence btw cluster number found and the ground truth
 
-    fInd = open(inputFile, "r")
+    fInd = open(inputFile, "r+")
     #
     # matClusters is a list of points
     #    and each point has a list that defines the cluster label it belongs on Ground Truth partition (position 0) and

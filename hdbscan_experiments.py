@@ -8,9 +8,16 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import normalize 
 from sklearn import preprocessing
 import itertools
+from random import sample
+from statistics import mean, stdev
+from enum import Enum
 import csv
 import os
 import sys
+
+class Cluster_Algorithm(Enum):
+    DBSCAN = 1
+    HDBSCAN = 2
 
 class Experiment(object):
 
@@ -29,7 +36,7 @@ class Experiment(object):
         clusterer = DBSCAN(eps = eps, min_samples = min_samples)
         return clusterer.fit_predict(dataset)
 
-    @ staticmethod
+    @staticmethod
     def compute_acc(ground_truth_classes, predicted_classes):
         if len(ground_truth_classes) != len(predicted_classes):
             print("Arrays must have the same dimensions.")
@@ -48,9 +55,15 @@ class Experiment(object):
 
         # data = StandardScaler().fit_transform(data)
         print(dataset_name.upper())
+        print("Ground-truth labels")
+        unique, counts = np.unique(classes, return_counts=True)
+        print(dict(zip(unique, counts)))
 
         d_clusterer_labels = Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
         h_clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan)
+
+        unique, counts = np.unique(d_clusterer_labels, return_counts=True)
+        print(dict(zip(unique, counts)))
 
         print("Number of clusters found by DBSCAN: %d" % len(set(d_clusterer_labels)))
         print("Number of clusters found by HDBSCAN: %d\n" % len(set(h_clusterer_labels)))
@@ -59,7 +72,7 @@ class Experiment(object):
         print("FM Index (DBSCAN): {0}".format(metrics.fowlkes_mallows_score(classes, d_clusterer_labels)))
         print("FM Index (HDBSCAN): {0}\n".format(metrics.fowlkes_mallows_score(classes, h_clusterer_labels)))
         
-        print("Accuracy (DBSCAN): {0}".format(Experiment.compute_acc(classes, d_clusterer_labels)))
+        print("Accuracy (DBSCAN): {0:.10f}".format(Experiment.compute_acc(classes, d_clusterer_labels)))
         print("Accuracy (HDBSCAN): {0}\n\n".format(metrics.accuracy_score(classes, h_clusterer_labels)))
 
     @staticmethod 
@@ -69,26 +82,61 @@ class Experiment(object):
         # data = StandardScaler().fit_transform(data)
         print(dataset_name.upper())
 
-        _, d_clusterer_labels = DBSCAN_Brandao.dbFun(data, data, eps_dbscan, minPts_dbscan, "teste", classes)
-        Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
+        _, d_labels = DBSCAN_Brandao.dbFun(data, data, eps_dbscan, minPts_dbscan, "teste", classes)
+        unique, counts = np.unique(d_labels, return_counts=True)
+        print(dict(zip(unique, counts)))
 
-        print("Number of clusters found by DBSCAN: %d" % len(set(d_clusterer_labels)))
+        Experiment.run_dbscan(data, eps_dbscan, minPts_dbscan)
+
+        print("Number of clusters found by DBSCAN: %d" % len(set(d_labels)))
         print("Number of ground-truth clusters: %d" % len(set(classes)))
 
-        print("FM Index (DBSCAN): {0}".format(metrics.fowlkes_mallows_score(classes, d_clusterer_labels)))
+        print("FM Index (DBSCAN): {0}".format(metrics.fowlkes_mallows_score(classes, d_labels)))
+        print("Accuracy (DBSCAN): {0:.10f}".format(Experiment.compute_acc(classes, d_labels)))
+
+    @staticmethod
+    def baseline2(dataset_name, reduction, eps, minPts, cluster_algorithm):
+        data, classes = Experiment.__read_csv(dataset_name)
+        print("\n" + dataset_name.upper())
+
+        fm_indexes = []
+        accuracies = []
+
+        if cluster_algorithm == Cluster_Algorithm.DBSCAN: print("DBSCAN 100 EXPERIMENTS...")
+        if cluster_algorithm == Cluster_Algorithm.HDBSCAN: print("HDBSCAN 100 EXPERIMENTS...")
+        
+        for i in range(100):    
+            len_data = len(data)
+            qtd_points = (int)(len_data * (1 - reduction))
+            rnd_idx = sample(range(len(data)), qtd_points)
+
+            data_rnd = data[rnd_idx]
+            classes_rnd = classes[rnd_idx]
+
+            if cluster_algorithm == Cluster_Algorithm.DBSCAN: d_clusterer_labels = Experiment.__run_dbscan(data_rnd, eps, minPts)
+            else:
+                if cluster_algorithm == Cluster_Algorithm.HDBSCAN: d_clusterer_labels = Experiment.__run_hdbscan(data_rnd, eps, minPts)
+
+            fm_indexes.append(metrics.fowlkes_mallows_score(classes_rnd, d_clusterer_labels))
+            accuracies.append(metrics.accuracy_score(classes_rnd, d_clusterer_labels))
+        
+        print("FM-Index: Mean = {0}; STD: {1}".format(mean(fm_indexes), stdev(fm_indexes)))
+        print("Accuracy: Mean = {0}; STD: {1}".format(mean(accuracies), stdev(accuracies)))
+
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    parameters = [["cluto-t4-8k.csv", 0.02, 25, 0.02, 25]]
+    # parameters = [["cluto-t8-8k.csv", 0.0218, 14, 0.0218, 14]]
 
-    # parameters = [
-    #     ["Aggregation.csv", 0.042, 7, 0.042, 7],
-    #     ["diamond9.csv", 0.03, 12, 0.03, 12],
-    #     ["cluto-t4-8k.csv", 0.02, 25, 0.02, 25],
-    #     ["cluto-t5-8k.csv", 0.02, 25, 0.02, 25],
-    #     ["cluto-t7-10k.csv", 0.025, 28, 0.025, 28],
-    #     ["cluto-t8-8k.csv", 0.0218, 14, 0.0218, 14]]
+    parameters = [
+        ["Aggregation.csv", 0.042, 7, 0.042, 7, 0.3959],
+        ["diamond9.csv", 0.03, 12, 0.03, 12, 0.7432],
+        ["cluto-t4-8k.csv", 0.02, 25, 0.02, 25, 0.8606],
+        ["cluto-t5-8k.csv", 0.02, 25, 0.02, 25, 0.9122],
+        ["cluto-t7-10k.csv", 0.025, 28, 0.025, 28, 0.7796],
+        ["cluto-t8-8k.csv", 0.0218, 14, 0.0218, 14, 0.7556]]
 
     for param in parameters:
-        Experiment.baseline1_brandao(param[0], param[1], param[2])
+        Experiment.baseline2(param[0], param[5], param[1], param[2], Cluster_Algorithm.DBSCAN)
+        Experiment.baseline2(param[0], param[5], param[3], param[4], Cluster_Algorithm.HDBSCAN)
     

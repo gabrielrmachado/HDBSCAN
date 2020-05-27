@@ -182,7 +182,7 @@ def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt):
     print('Estimated number of clusters: %d' % n_clusters_)
 
     # writeLog("   Clusters...: " + str(n_clusters_))
-
+    
     print("Wait plotting clusters.....")
     plotCluster(_original_vals, labels, core_samples_mask, title, subtitle, hasLegend)
     return n_clusters_, db.labels_
@@ -345,7 +345,7 @@ def plotCluster(_x, labels, core_samples_mask, title, subtitle, legend):
 # qtyClusters, db = dbFun(_val, _val_original, epsilon, minPts, hasLegend, _gt)
 
 # print("Calculating FM...")
-# ok, result, rand, jac = validation.validation(outputFile)
+# ok, result, rand, jac = validation.validation("results.txt")
 
 # print("fm", result)
 # print("rand", rand)
