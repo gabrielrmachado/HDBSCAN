@@ -80,7 +80,7 @@ def distPt(a, b):
     dist = ((b[0]-a[0])**2 + (b[1]-a[1])**2) ** 0.5
     return dist
 
-def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt):
+def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt, plot=True, print_strMat=True):
 
     # Values salved for chamelon
     # epsilon = 0.09
@@ -125,7 +125,7 @@ def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt):
             finalMap.append([label, labelGT, max])
 
     # writeLog("   Map Matrix")
-    print("Map Matrix")
+    if print_strMat: print("Map Matrix")
 
     # sort Final Map
 
@@ -150,7 +150,7 @@ def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt):
     for m in finalMap:
         strMat = "   %d, %d, %d" % (m[0], m[1], m[2])
         # writeLog(strMat)
-        print(strMat)
+        if print_strMat: print(strMat)
 
     fOut = None
 
@@ -179,12 +179,14 @@ def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt):
 
     title = ('Número de Clusters: %d' % n_clusters_)
     subtitle = ('Epsilon = %f, minPts = %d' % (epsilon,minPts))
-    print('Estimated number of clusters: %d' % n_clusters_)
+    if print_strMat: print('Estimated number of clusters: %d' % n_clusters_)
 
     # writeLog("   Clusters...: " + str(n_clusters_))
     
-    print("Wait plotting clusters.....")
-    plotCluster(_original_vals, labels, core_samples_mask, title, subtitle, hasLegend)
+    if plot:
+        print("Wait plotting clusters.....")
+        plotCluster(_original_vals, labels, core_samples_mask, title, subtitle, hasLegend)
+
     return n_clusters_, db.labels_
 
 
