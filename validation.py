@@ -78,6 +78,6 @@ def validation(inputFile):
     # calculate FM index: ss over the square root of m1 x m2
     fm = ss / ( (m1 * m2) ** 0.5 )
     rand = (ss + sd) / m
-    jac = (ss) /  (ss + sd + ds)
+    jac = (ss) / (ss + sd + ds)
 
     return True, fm, rand, jac

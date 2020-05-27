@@ -43,7 +43,7 @@ class Experiment(object):
         return matchings / len(ground_truth_classes)
 
     @staticmethod
-    def baseline_1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan):
+    def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan):
         data, classes = Experiment.__read_csv(dataset_name)
 
         # data = StandardScaler().fit_transform(data)
@@ -62,6 +62,21 @@ class Experiment(object):
         print("Accuracy (DBSCAN): {0}".format(Experiment.compute_acc(classes, d_clusterer_labels)))
         print("Accuracy (HDBSCAN): {0}\n\n".format(metrics.accuracy_score(classes, h_clusterer_labels)))
 
+    @staticmethod 
+    def baseline1_brandao(dataset_name, eps_dbscan, minPts_dbscan):
+        data, classes = Experiment.__read_csv(dataset_name)
+
+        # data = StandardScaler().fit_transform(data)
+        print(dataset_name.upper())
+
+        _, d_clusterer_labels = DBSCAN_Brandao.dbFun(data, data, eps_dbscan, minPts_dbscan, "teste", classes)
+        Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
+
+        print("Number of clusters found by DBSCAN: %d" % len(set(d_clusterer_labels)))
+        print("Number of ground-truth clusters: %d" % len(set(classes)))
+
+        print("FM Index (DBSCAN): {0}".format(metrics.fowlkes_mallows_score(classes, d_clusterer_labels)))
+
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
     parameters = [["cluto-t4-8k.csv", 0.02, 25, 0.02, 25]]
@@ -75,5 +90,5 @@ if __name__ == "__main__":
     #     ["cluto-t8-8k.csv", 0.0218, 14, 0.0218, 14]]
 
     for param in parameters:
-        Experiment.baseline_1(param[0], param[1], param[2], param[3], param[4])
+        Experiment.baseline1_brandao(param[0], param[1], param[2])
     

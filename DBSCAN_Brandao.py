@@ -1,5 +1,4 @@
 import csv
-
 import time
 import validation
 import matplotlib.pyplot as plt
@@ -11,18 +10,18 @@ from sklearn.preprocessing import StandardScaler
 import os
 import sys
 
-def writeLog(msgLog):
-    fLog.write(time.strftime('%d/%m/%Y %a %H:%M:%S') + ":" + msgLog + "\n")
-    return
+# def writeLog(msgLog):
+#     fLog.write(time.strftime('%d/%m/%Y %a %H:%M:%S') + ":" + msgLog + "\n")
+#     return
 
-def writeResultsHeader():
-    fRes.write("time-stamp,epsilon,minPts,clusters,type,FM" + "\n")
+# def writeResultsHeader():
+#     fRes.write("time-stamp,epsilon,minPts,clusters,type,FM" + "\n")
 
-def writeResults(epsilon, minPts, clusters, type, FM, rand, jac):
-    fRes.write(time.strftime('%d/%m/%Y %a %H:%M:%S'))
-    msg = ",%6.4f,%03d,%d,%s,%07.5f,%07.5f,%07.5f\n" % (epsilon, minPts, clusters, type, FM, rand, jac)
-    fRes.write(msg)
-    return
+# def writeResults(epsilon, minPts, clusters, type, FM, rand, jac):
+#     fRes.write(time.strftime('%d/%m/%Y %a %H:%M:%S'))
+#     msg = ",%6.4f,%03d,%d,%s,%07.5f,%07.5f,%07.5f\n" % (epsilon, minPts, clusters, type, FM, rand, jac)
+#     fRes.write(msg)
+#     return
 
 def isfloat(value):
     try:
@@ -125,7 +124,7 @@ def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt):
         else:
             finalMap.append([label, labelGT, max])
 
-    writeLog("   Map Matrix")
+    # writeLog("   Map Matrix")
     print("Map Matrix")
 
     # sort Final Map
@@ -150,10 +149,10 @@ def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt):
 
     for m in finalMap:
         strMat = "   %d, %d, %d" % (m[0], m[1], m[2])
-        writeLog(strMat)
+        # writeLog(strMat)
         print(strMat)
 
-    fOut = open(outputFile, "w")
+    fOut = None
 
     j = 0
     for i in _original_vals:
@@ -167,11 +166,11 @@ def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt):
                 newLabel = k[1]
                 break
 
-        strCSV = str(i[0]) + "," + str(i[1]) + "," + str(labels[j]) + "," + str(newLabel) + "," + str(gt[j]) + "\n"
+        # strCSV = str(i[0]) + "," + str(i[1]) + "," + str(labels[j]) + "," + str(newLabel) + "," + str(gt[j]) + "\n"
         j += 1
-        fOut.write(strCSV)
+        # fOut.write(strCSV)
 
-    fOut.close()
+    # fOut.close()
 
     n_clusters_ = 0
     for c in set(labels):
@@ -182,11 +181,11 @@ def dbFun(_x, _original_vals, epsilon, minPts, hasLegend, gt):
     subtitle = ('Epsilon = %f, minPts = %d' % (epsilon,minPts))
     print('Estimated number of clusters: %d' % n_clusters_)
 
-    writeLog("   Clusters...: " + str(n_clusters_))
+    # writeLog("   Clusters...: " + str(n_clusters_))
 
     print("Wait plotting clusters.....")
     plotCluster(_original_vals, labels, core_samples_mask, title, subtitle, hasLegend)
-    return n_clusters_
+    return n_clusters_, db.labels_
 
 
 def plotCluster(_x, labels, core_samples_mask, title, subtitle, legend):
@@ -217,153 +216,151 @@ def plotCluster(_x, labels, core_samples_mask, title, subtitle, legend):
     return
 
 
-# verify if directory is defined
-hasDir, nameDir = parseOpt("-d", True)
+# # verify if directory is defined
+# hasDir, nameDir = parseOpt("-d", True)
 
-# replace "\\" by "/". In windows machines uses "\" for subdirectories. Python could handle with / in all OSs.
-nameDir = nameDir.replace("\\", "/")
+# # replace "\\" by "/". In windows machines uses "\" for subdirectories. Python could handle with / in all OSs.
+# nameDir = nameDir.replace("\\", "/")
 
-if hasDir:
-    if nameDir == "":
-        showError("Directory is not informed")
-    if not os.path.isdir(nameDir):
-        showError(nameDir + " is not a Directory")
-    dirInput = nameDir + "/devices/"
-    if not os.path.isdir(dirInput):
-        showError(dirInput + " subdirectory not found on ")
-else:
-    showHelp()
-    showError("-d option not found")
+# if hasDir:
+#     if nameDir == "":
+#         showError("Directory is not informed")
+#     if not os.path.isdir(nameDir):
+#         showError(nameDir + " is not a Directory")
+#     dirInput = nameDir + "/devices/"
+#     if not os.path.isdir(dirInput):
+#         showError(dirInput + " subdirectory not found on ")
+# else:
+#     showHelp()
+#     showError("-d option not found")
 
-nameDirAux = nameDir.split('/')
-nameSingleDir = nameDirAux[len(nameDirAux) - 1]
+# nameDirAux = nameDir.split('/')
+# nameSingleDir = nameDirAux[len(nameDirAux) - 1]
 
-hasType, optType = parseOpt("-t", True)
+# hasType, optType = parseOpt("-t", True)
 
-if not hasType:
-    showError("Please inform type: -t c for cell or -t p for point")
+# if not hasType:
+#     showError("Please inform type: -t c for cell or -t p for point")
 
-if optType != "c" and  optType != "p":
-    showError("Incorrect type. Valid types: (c)ell or (p)oint")
+# if optType != "c" and  optType != "p":
+#     showError("Incorrect type. Valid types: (c)ell or (p)oint")
 
-dirOutput = nameDir + "/central/6.resultsDBSCAN"
+# dirOutput = nameDir + "/central/6.resultsDBSCAN"
 
-if optType == "c":
-    inputFile = nameDir + "/central/4.mapClusterOutput/expanded-points-" + nameSingleDir + ".csv"
-    outputFile = dirOutput + "/output-cells-DBSCAN-" + nameSingleDir + ".csv"
-    strType = "Cell"
-else:
-    inputFile = nameDir + "/central/2.deviceConsolidation/points-" + nameSingleDir + ".csv"
-    outputFile = dirOutput + "/output-points-DBSCAN-" + nameSingleDir + ".csv"
-    strType = "Point"
+# if optType == "c":
+#     inputFile = nameDir + "/central/4.mapClusterOutput/expanded-points-" + nameSingleDir + ".csv"
+#     outputFile = dirOutput + "/output-cells-DBSCAN-" + nameSingleDir + ".csv"
+#     strType = "Cell"
+# else:
+#     inputFile = nameDir + "/central/2.deviceConsolidation/points-" + nameSingleDir + ".csv"
+#     outputFile = dirOutput + "/output-points-DBSCAN-" + nameSingleDir + ".csv"
+#     strType = "Point"
 
-if not os.path.exists(dirOutput):
-    os.makedirs(dirOutput)
+# if not os.path.exists(dirOutput):
+#     os.makedirs(dirOutput)
 
-logFile = nameDir + "/" + nameSingleDir + "-DBSCAN.log"
-logResults = nameDir + "/" + nameSingleDir + "-DBSCAN-results.csv"
+# logFile = nameDir + "/" + nameSingleDir + "-DBSCAN.log"
+# logResults = nameDir + "/" + nameSingleDir + "-DBSCAN-results.csv"
 
-hasFile = os.path.isfile(logResults)
+# hasFile = os.path.isfile(logResults)
 
-fLog = open(logFile, "a")
-fRes = open(logResults, "a")
+# fLog = open(logFile, "a")
+# fRes = open(logResults, "a")
 
-if not hasFile:
-    writeResultsHeader()
+# if not hasFile:
+#     writeResultsHeader()
 
-# Print the header of script
-showHeader()
+# # Print the header of script
+# showHeader()
 
-# verify if have any -h option
-hasHelp, opt = parseOpt("-h", False)
+# # verify if have any -h option
+# hasHelp, opt = parseOpt("-h", False)
 
-if (hasHelp > 0):
-    showHelp()
-    exit(1)
+# if (hasHelp > 0):
+#     showHelp()
+#     exit(1)
 
-# replace "\\" by "/". In windows machines uses "\" for subdirectories. Python could handle with / in all OSs.
-outputFile = outputFile.replace("\\", "/")
+# # replace "\\" by "/". In windows machines uses "\" for subdirectories. Python could handle with / in all OSs.
+# outputFile = outputFile.replace("\\", "/")
 
-# verify Epsilon
-hasEpsilon, epsilon = parseOpt("-e", True)
+# # verify Epsilon
+# hasEpsilon, epsilon = parseOpt("-e", True)
 
-if epsilon == "":
-    showError("Epsilon not informed")
-else:
-    if not isfloat(epsilon):
-        showError("Epsilon " + epsilon + " is not a valid value")
-    epsilon = float(epsilon)
-    if epsilon <= 0:
-        showError("Invalid value for Epsilon:" + str(epsilon))
+# if epsilon == "":
+#     showError("Epsilon not informed")
+# else:
+#     if not isfloat(epsilon):
+#         showError("Epsilon " + epsilon + " is not a valid value")
+#     epsilon = float(epsilon)
+#     if epsilon <= 0:
+#         showError("Invalid value for Epsilon:" + str(epsilon))
 
-# verify minPts
-hasMinPts, minPts = parseOpt("-m", True)
+# # verify minPts
+# hasMinPts, minPts = parseOpt("-m", True)
 
-if minPts == "":
-    showError("minPts not informed")
-else:
-    minPts = int(minPts)
-    if minPts <= 0:
-        showError("Invalid value for minPts:" + str(minPts))
+# if minPts == "":
+#     showError("minPts not informed")
+# else:
+#     minPts = int(minPts)
+#     if minPts <= 0:
+#         showError("Invalid value for minPts:" + str(minPts))
 
-hasLegend, opt = parseOpt("-l", False)
+# hasLegend, opt = parseOpt("-l", False)
 
-print("Input file: ", inputFile)
-print("Output file: ", outputFile)
-print("Epsilon: ", epsilon)
-print("MinPts: ", minPts)
+# print("Input file: ", inputFile)
+# print("Output file: ", outputFile)
+# print("Epsilon: ", epsilon)
+# print("MinPts: ", minPts)
 
-_val = []  # Values
-_gt = []   # Ground truths
+# _val = []  # Values
+# _gt = []   # Ground truths
 
+# with open(inputFile, 'rU') as inp:
+#     rd = csv.reader(inp)
+#     qty = 0
+#     first = True
+#     for row in rd:
+#         if first:
+#             first = False
+#         else:
+#             qty += 1
+#             # _val receive: x, y
+#             _val.append([row[0], row[1]])
+#             _gt.append(row[-1])
+#     print("Total Points:", qty)
 
-
-with open(inputFile, 'rU') as inp:
-    rd = csv.reader(inp)
-    qty = 0
-    first = True
-    for row in rd:
-        if first:
-            first = False
-        else:
-            qty += 1
-            # _val receive: x, y
-            _val.append([row[0], row[1]])
-            _gt.append(row[-1])
-    print("Total Points:", qty)
-
-_val = np.asarray(_val)
-_val_original = _val
-_val_original = _val_original.astype('float32')
-_val = StandardScaler().fit_transform(_val_original)
+# _val = np.asarray(_val)
+# _val_original = _val
+# _val_original = _val_original.astype('float32')
+# _val = StandardScaler().fit_transform(_val_original)
 
 
-writeLog("/------ Begin of Script")
+# writeLog("/------ Begin of Script")
 
-writeLog("epsilon: " + str(epsilon) + " minPts: " + str(minPts))
-writeLog("   Type.......: " + strType)
-writeLog("   Input File.: " + inputFile)
-writeLog("   Output File: " + outputFile)
+# writeLog("epsilon: " + str(epsilon) + " minPts: " + str(minPts))
+# writeLog("   Type.......: " + strType)
+# writeLog("   Input File.: " + inputFile)
+# writeLog("   Output File: " + outputFile)
 
-qtyClusters = dbFun(_val, _val_original, epsilon, minPts, hasLegend, _gt)
+# qtyClusters, db = dbFun(_val, _val_original, epsilon, minPts, hasLegend, _gt)
 
-print("Calculating FM...")
-ok, result, rand, jac = validation.validation(outputFile)
+# print("Calculating FM...")
+# ok, result, rand, jac = validation.validation(outputFile)
 
-print("fm", result)
-print("rand", rand)
-print("jac", jac)
+# print("fm", result)
+# print("rand", rand)
+# print("jac", jac)
 
-writeLog("   FM.........: " + str(result))
-writeLog("   Rand.......: " + str(rand))
-writeLog("   Jac........: " + str(jac))
+# writeLog("   FM.........: " + str(result))
+# writeLog("   Rand.......: " + str(rand))
+# writeLog("   Jac........: " + str(jac))
 
-writeResults(epsilon,minPts,qtyClusters,optType,result,rand,jac)
+# writeResults(epsilon,minPts,qtyClusters,optType,result,rand,jac)
 
-writeLog("End of Script ------/")
+# writeLog("End of Script ------/")
 
 
-fLog.close()
-fRes.close()
+# fLog.close()
+# fRes.close()
 
-# _len = len(_center)
+# # _len = len(_center)
