@@ -104,24 +104,24 @@ class Experiment(object):
 
         if cluster_algorithm == Cluster_Algorithm.DBSCAN: print("DBSCAN 100 EXPERIMENTS...")
         if cluster_algorithm == Cluster_Algorithm.HDBSCAN: print("HDBSCAN 100 EXPERIMENTS...")
-        
+
         for i in range(100):    
             len_data = len(data)
             qtd_points = (int)(len_data * (1 - reduction))
+            if i == 0: print("Number of random samples: {0}".format(qtd_points))
             rnd_idx = sample(range(len(data)), qtd_points)
 
             data_rnd = data[rnd_idx]
             classes_rnd = classes[rnd_idx]
 
             if cluster_algorithm == Cluster_Algorithm.DBSCAN: d_clusterer_labels = Experiment.__run_dbscan(data_rnd, eps, minPts)
-            else:
-                if cluster_algorithm == Cluster_Algorithm.HDBSCAN: d_clusterer_labels = Experiment.__run_hdbscan(data_rnd, eps, minPts)
+            elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: d_clusterer_labels = Experiment.__run_hdbscan(data_rnd, eps, minPts)
 
             fm_indexes.append(metrics.fowlkes_mallows_score(classes_rnd, d_clusterer_labels))
             accuracies.append(metrics.accuracy_score(classes_rnd, d_clusterer_labels))
         
-        print("FM-Index: Mean = {0}; STD: {1}".format(mean(fm_indexes), stdev(fm_indexes)))
-        print("Accuracy: Mean = {0}; STD: {1}".format(mean(accuracies), stdev(accuracies)))
+        print("FM-Index: Mean = {0}\tSTD = {1}".format(mean(fm_indexes), stdev(fm_indexes)))
+        print("Accuracy: Mean = {0}\tSTD = {1}".format(mean(accuracies), stdev(accuracies)))
 
 
 if __name__ == "__main__":
