@@ -41,7 +41,7 @@ class Experiment(object):
     @staticmethod
     def __run_hdbscan(dataset, eps, min_cluster_size, min_samples):
         clusterer = HDBSCAN(cluster_selection_epsilon = eps, min_cluster_size = min_cluster_size, min_samples = min_samples, 
-        algorithm='best')
+        algorithm='generic')
         return clusterer.fit_predict(dataset)
 
     @staticmethod
@@ -129,14 +129,15 @@ class Experiment(object):
         for i in range(100):    
             len_data = len(data)
             qtd_points = (int)(len_data * (1 - reduction))
+            
             if i == 0: print("Number of random samples: {0}".format(qtd_points))
+            
             rnd_idx = sample(range(len(data)), qtd_points)
-
             data_rnd = data[rnd_idx]
             classes_rnd = classes[rnd_idx]
 
-            if cluster_algorithm == Cluster_Algorithm.DBSCAN: 
-                _, d_clusterer_labels = DBSCAN_Brandao.dbFun(data_rnd, data_rnd, eps, minPts, "teste", classes_rnd, plot=False, print_strMat=False)
+            # if cluster_algorithm == Cluster_Algorithm.DBSCAN: 
+            #     _, d_clusterer_labels = DBSCAN_Brandao.dbFun(data_rnd, data_rnd, eps, minPts, "teste", classes_rnd, plot=False, print_strMat=False)
 
             if cluster_algorithm == Cluster_Algorithm.DBSCAN: d_clusterer_labels = Experiment.__run_dbscan(data_rnd, eps, minPts)
             elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: d_clusterer_labels = Experiment.__run_hdbscan(data_rnd, eps, minPts, min_samples)
@@ -150,7 +151,7 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    parameters = [["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 0.7556]]
+    parameters = [["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 0.7796]]
 
     # parameters = [
     #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959], // algorithm = 'generic
@@ -160,17 +161,16 @@ if __name__ == "__main__":
     #     ["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 0.7796],
     #     ["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 0.7556]]
 
+    print("=========================")
+    print("BASELINE 1 EXPERIMENTS...")
+    print("=========================")
+    for param in parameters:
+        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, write_csv=True)
+        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, write_csv=True)
+
     print("\n=========================")
     print("BASELINE 2 EXPERIMENTS...")
     print("=========================")
     for param in parameters:
         Experiment.baseline2(param[0], param[6], param[1], param[2], param[5], Cluster_Algorithm.DBSCAN)
         Experiment.baseline2(param[0], param[6], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN)
-    
-    # print("=========================")
-    # print("BASELINE 1 EXPERIMENTS...")
-    # print("=========================")
-    # for param in parameters:
-    #     Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, write_csv=True)
-    #     Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, write_csv=True)
-    
