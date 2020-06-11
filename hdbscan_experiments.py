@@ -39,8 +39,9 @@ class Experiment(object):
         print("File {0} created successfully!".format(file_name))
 
     @staticmethod
-    def __run_hdbscan(dataset, eps, min_cluster_size):
-        clusterer = HDBSCAN(cluster_selection_epsilon = eps, min_cluster_size = min_cluster_size)
+    def __run_hdbscan(dataset, eps, min_cluster_size, min_samples):
+        clusterer = HDBSCAN(cluster_selection_epsilon = eps, min_cluster_size = min_cluster_size, min_samples = min_samples, 
+        algorithm='best')
         return clusterer.fit_predict(dataset)
 
     @staticmethod
@@ -62,7 +63,7 @@ class Experiment(object):
         return matchings / len(ground_truth_classes)
 
     @staticmethod
-    def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, cluster_algorithm, write_csv=False):
+    def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, cluster_algorithm, write_csv=False):
         data, classes = Experiment.__read_csv(dataset_name)
         clusterer_labels = []
 
@@ -80,7 +81,7 @@ class Experiment(object):
              unique, counts = np.unique(clusterer_labels, return_counts=True)
 
         elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: 
-            clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan)
+            clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan)
             unique, counts = np.unique(clusterer_labels, return_counts=True)
             
         print("Cluster labels")
@@ -89,7 +90,7 @@ class Experiment(object):
         print("\nNumber of ground-truth clusters: %d" % len(set(classes)))
         print("Number of clusters found by {0}: {1}".format(cluster_algorithm.name, len(set(clusterer_labels))))
         print("FM Index ({0}): {1}".format(cluster_algorithm.name, metrics.fowlkes_mallows_score(classes, clusterer_labels)))
-        print("Accuracy ({0}): {1:.10f}".format(cluster_algorithm.name, Experiment.compute_acc(classes, clusterer_labels)))
+        print("Accuracy ({0}): {1:.10f}".format(cluster_algorithm.name, metrics.accuracy_score(classes, clusterer_labels)))
 
         if write_csv:
             file_name = cluster_algorithm.name + "_" + dataset_name
@@ -115,7 +116,7 @@ class Experiment(object):
         print("Accuracy (DBSCAN): {0:.10f}".format(Experiment.compute_acc(classes, d_labels)))
 
     @staticmethod
-    def baseline2(dataset_name, reduction, eps, minPts, cluster_algorithm):
+    def baseline2(dataset_name, reduction, eps, minPts, min_samples, cluster_algorithm):
         data, classes = Experiment.__read_csv(dataset_name)
         print("\n" + dataset_name.upper())
 
@@ -138,7 +139,7 @@ class Experiment(object):
                 _, d_clusterer_labels = DBSCAN_Brandao.dbFun(data_rnd, data_rnd, eps, minPts, "teste", classes_rnd, plot=False, print_strMat=False)
 
             if cluster_algorithm == Cluster_Algorithm.DBSCAN: d_clusterer_labels = Experiment.__run_dbscan(data_rnd, eps, minPts)
-            elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: d_clusterer_labels = Experiment.__run_hdbscan(data_rnd, eps, minPts)
+            elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: d_clusterer_labels = Experiment.__run_hdbscan(data_rnd, eps, minPts, min_samples)
 
             fm_indexes.append(metrics.fowlkes_mallows_score(classes_rnd, d_clusterer_labels))
             accuracies.append(metrics.accuracy_score(classes_rnd, d_clusterer_labels))
@@ -149,27 +150,27 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    # parameters = [ ["Aggregation.csv", 0.042, 7, 0.042, 7, 0.3959]]
+    parameters = [["diamond9.csv", 0.03, 12, 0.015, 12, 9, 0.7432]]
 
-    parameters = [
-        ["Aggregation.csv", 0.042, 7, 0.042, 7, 0.3959],
-        ["diamond9.csv", 0.03, 12, 0.03, 12, 0.7432],
-        ["cluto-t4-8k.csv", 0.02, 25, 0.02, 25, 0.8606],
-        ["cluto-t5-8k.csv", 0.02, 25, 0.02, 25, 0.9122],
-        ["cluto-t7-10k.csv", 0.025, 28, 0.025, 28, 0.7796],
-        ["cluto-t8-8k.csv", 0.0218, 14, 0.0218, 14, 0.7556]]
+    # parameters = [
+    #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959], // algorithm = 'generic
+    #     ["diamond9.csv", 0.03, 12, 0.015, 12, 9, 0.7432],
+    #     ["cluto-t4-8k.csv", 0.02, 25, 0.02, 25, 0.8606],
+    #     ["cluto-t5-8k.csv", 0.02, 25, 0.02, 25, 0.9122],
+    #     ["cluto-t7-10k.csv", 0.025, 28, 0.025, 28, 0.7796],
+    #     ["cluto-t8-8k.csv", 0.0218, 14, 0.0218, 14, 0.7556]]
 
     # print("\n=========================")
     # print("BASELINE 2 EXPERIMENTS...")
     # print("=========================")
     # for param in parameters:
-    #     Experiment.baseline2(param[0], param[5], param[1], param[2], Cluster_Algorithm.DBSCAN)
-    #     Experiment.baseline2(param[0], param[5], param[3], param[4], Cluster_Algorithm.HDBSCAN)
+    #     Experiment.baseline2(param[0], param[6], param[1], param[2], Cluster_Algorithm.DBSCAN)
+    #     Experiment.baseline2(param[0], param[6], param[3], param[4], Cluster_Algorithm.HDBSCAN)
     
     print("=========================")
     print("BASELINE 1 EXPERIMENTS...")
     print("=========================")
     for param in parameters:
-        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], Cluster_Algorithm.DBSCAN, write_csv=True)
-        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], Cluster_Algorithm.HDBSCAN, write_csv=True)
+        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, write_csv=True)
+        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, write_csv=True)
     
