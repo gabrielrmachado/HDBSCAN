@@ -160,17 +160,17 @@ if __name__ == "__main__":
     #     ["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 0.7796],
     #     ["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 0.7556]]
 
-    # print("\n=========================")
-    # print("BASELINE 2 EXPERIMENTS...")
-    # print("=========================")
-    # for param in parameters:
-    #     Experiment.baseline2(param[0], param[6], param[1], param[2], Cluster_Algorithm.DBSCAN)
-    #     Experiment.baseline2(param[0], param[6], param[3], param[4], Cluster_Algorithm.HDBSCAN)
-    
-    print("=========================")
-    print("BASELINE 1 EXPERIMENTS...")
+    print("\n=========================")
+    print("BASELINE 2 EXPERIMENTS...")
     print("=========================")
     for param in parameters:
-        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, write_csv=True)
-        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, write_csv=True)
+        Experiment.baseline2(param[0], param[6], param[1], param[2], param[5], Cluster_Algorithm.DBSCAN)
+        Experiment.baseline2(param[0], param[6], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN)
+    
+    # print("=========================")
+    # print("BASELINE 1 EXPERIMENTS...")
+    # print("=========================")
+    # for param in parameters:
+    #     Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, write_csv=True)
+    #     Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, write_csv=True)
     
