@@ -150,12 +150,12 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    parameters = [["diamond9.csv", 0.03, 12, 0.015, 12, 9, 0.7432]]
+    parameters = [["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 0.8606]]
 
     # parameters = [
     #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959], // algorithm = 'generic
     #     ["diamond9.csv", 0.03, 12, 0.015, 12, 9, 0.7432],
-    #     ["cluto-t4-8k.csv", 0.02, 25, 0.02, 25, 0.8606],
+    #     ["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 0.8606],
     #     ["cluto-t5-8k.csv", 0.02, 25, 0.02, 25, 0.9122],
     #     ["cluto-t7-10k.csv", 0.025, 28, 0.025, 28, 0.7796],
     #     ["cluto-t8-8k.csv", 0.0218, 14, 0.0218, 14, 0.7556]]
