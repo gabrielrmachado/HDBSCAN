@@ -62,6 +62,12 @@ class Experiment(object):
                 i = i + 1
         return matchings / len(ground_truth_classes)
 
+    @staticmethod 
+    def label_mapping(predicted_labels, gt_labels):
+        df = pd.DataFrame({'Predicted': predicted_labels, 'Ground_Truth': gt_labels})
+        # print(df)
+        print((df.loc[df['Predicted'] == 1]).groupby('Ground_Truth').count())
+
     @staticmethod
     def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, cluster_algorithm, write_csv=False):
         data, classes = Experiment.__read_csv(dataset_name)
@@ -92,6 +98,8 @@ class Experiment(object):
         print("FM Index ({0}): {1}".format(cluster_algorithm.name, metrics.fowlkes_mallows_score(classes, clusterer_labels)))
         print("Accuracy ({0}): {1:.10f}".format(cluster_algorithm.name, metrics.accuracy_score(classes, clusterer_labels)))
 
+        Experiment.label_mapping(clusterer_labels, classes)
+
         if write_csv:
             file_name = cluster_algorithm.name + "_" + dataset_name
             Experiment.__write_csv(file_name, data, classes, clusterer_labels)
@@ -114,6 +122,7 @@ class Experiment(object):
 
         print("FM Index (DBSCAN): {0}".format(metrics.fowlkes_mallows_score(classes, d_labels)))
         print("Accuracy (DBSCAN): {0:.10f}".format(Experiment.compute_acc(classes, d_labels)))
+
 
     @staticmethod
     def baseline2(dataset_name, reduction, eps, minPts, min_samples, cluster_algorithm):
@@ -151,7 +160,7 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    parameters = [["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 0.7796]]
+    parameters = [["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 0.8606]]
 
     # parameters = [
     #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959], // algorithm = 'generic
@@ -168,9 +177,9 @@ if __name__ == "__main__":
         Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, write_csv=True)
         Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, write_csv=True)
 
-    print("\n=========================")
-    print("BASELINE 2 EXPERIMENTS...")
-    print("=========================")
-    for param in parameters:
-        Experiment.baseline2(param[0], param[6], param[1], param[2], param[5], Cluster_Algorithm.DBSCAN)
-        Experiment.baseline2(param[0], param[6], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN)
+    # print("\n=========================")
+    # print("BASELINE 2 EXPERIMENTS...")
+    # print("=========================")
+    # for param in parameters:
+    #     Experiment.baseline2(param[0], param[6], param[1], param[2], param[5], Cluster_Algorithm.DBSCAN)
+    #     Experiment.baseline2(param[0], param[6], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN)
