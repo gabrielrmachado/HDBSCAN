@@ -65,8 +65,12 @@ class Experiment(object):
     @staticmethod 
     def label_mapping(predicted_labels, gt_labels):
         df = pd.DataFrame({'Predicted': predicted_labels, 'Ground_Truth': gt_labels})
-        # print(df)
-        print((df.loc[df['Predicted'] == 1]).groupby('Ground_Truth').count())
+        uniques = np.unique(predicted_labels, return_counts=False)
+
+        for label in uniques:
+            df_c = (df.loc[df['Predicted'] == label]).groupby('Ground_Truth').count()
+            print("\n\nLabel {0}:\n{1}".format(label, df_c))
+            print("Max gt label: {0}".format(df_c['Predicted'].argmax()))
 
     @staticmethod
     def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, cluster_algorithm, write_csv=False):
@@ -160,7 +164,7 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    parameters = [["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 0.8606]]
+    parameters = [["diamond9.csv", 0.03, 12, 0.015, 12, 9, 0.7432]]
 
     # parameters = [
     #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959], // algorithm = 'generic
