@@ -67,10 +67,16 @@ class Experiment(object):
         df = pd.DataFrame({'Predicted': predicted_labels, 'Ground_Truth': gt_labels})
         uniques = np.unique(predicted_labels, return_counts=False)
 
+        print(df)
+
         for label in uniques:
             df_c = (df.loc[df['Predicted'] == label]).groupby('Ground_Truth').count()
-            print("\n\nLabel {0}:\n{1}".format(label, df_c))
-            print("Max gt label: {0}".format(df_c['Predicted'].argmax()))
+            max_label = df_c['Predicted'].argmax()
+            indices = df.index[df['Predicted'] == label].tolist()
+            df['Predicted'][indices] = max_label
+
+        print(df)
+        print(df['Predicted'].to_numpy())
 
     @staticmethod
     def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, cluster_algorithm, write_csv=False):
@@ -88,10 +94,12 @@ class Experiment(object):
 
         if cluster_algorithm == Cluster_Algorithm.DBSCAN:
              clusterer_labels = Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
+             clusterer_labels = Experiment.label_mapping(clusterer_labels, classes)
              unique, counts = np.unique(clusterer_labels, return_counts=True)
 
         elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: 
             clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan)
+            clusterer_labels = Experiment.label_mapping(clusterer_labels, classes)
             unique, counts = np.unique(clusterer_labels, return_counts=True)
             
         print("Cluster labels")
@@ -164,7 +172,7 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    parameters = [["diamond9.csv", 0.03, 12, 0.015, 12, 9, 0.7432]]
+    parameters = [["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 0.8606]]
 
     # parameters = [
     #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959], // algorithm = 'generic
@@ -178,7 +186,7 @@ if __name__ == "__main__":
     print("BASELINE 1 EXPERIMENTS...")
     print("=========================")
     for param in parameters:
-        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, write_csv=True)
+        # Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, write_csv=True)
         Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, write_csv=True)
 
     # print("\n=========================")
