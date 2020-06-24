@@ -67,16 +67,13 @@ class Experiment(object):
         df = pd.DataFrame({'Predicted': predicted_labels, 'Ground_Truth': gt_labels})
         uniques = np.unique(predicted_labels, return_counts=False)
 
-        print(df)
-
         for label in uniques:
             df_c = (df.loc[df['Predicted'] == label]).groupby('Ground_Truth').count()
-            max_label = df_c['Predicted'].argmax()
+            max_label = df_c.index[df_c['Predicted'].argmax()]
             indices = df.index[df['Predicted'] == label].tolist()
             df['Predicted'][indices] = max_label
 
-        print(df)
-        print(df['Predicted'].to_numpy())
+        return df['Predicted'].to_numpy()
 
     @staticmethod
     def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, cluster_algorithm, write_csv=False):
