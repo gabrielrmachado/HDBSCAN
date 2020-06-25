@@ -34,14 +34,14 @@ class Experiment(object):
 
             size = len(data)
             for i in range(size):
-                writer.writerow([i+1, data[i][0], data[i][1], gt_labels[i], clusterer_labels[i]])
+                writer.writerow([i, data[i][0], data[i][1], gt_labels[i], clusterer_labels[i]])
         
         print("File {0} created successfully!".format(file_name))
 
     @staticmethod
     def __run_hdbscan(dataset, eps, min_cluster_size, min_samples):
         clusterer = HDBSCAN(cluster_selection_epsilon = eps, min_cluster_size = min_cluster_size, min_samples = min_samples, 
-        algorithm='generic')
+        algorithm='best')
         return clusterer.fit_predict(dataset)
 
     @staticmethod
@@ -64,23 +64,44 @@ class Experiment(object):
 
     @staticmethod 
     def label_mapping(predicted_labels, gt_labels):
+        # csv = pd.read_csv(os.path.join("output_files", "HDBSCAN_cluto-t4-8k.csv"), sep=';', header = 0)
+        # predicted_labels = csv.values[:, 4].astype(int)
+        # gt_labels = csv.values[:, 3].astype(int)
         df = pd.DataFrame({'Predicted': predicted_labels, 'Ground_Truth': gt_labels})
         uniques = np.unique(predicted_labels, return_counts=False)
 
+        mapped_indices = {}
+        label_to_gt = {}
+
         for label in uniques:
+            print("\nLabel {0}".format(label))
             df_c = (df.loc[df['Predicted'] == label]).groupby('Ground_Truth').count()
+            print(df_c)
             max_label = df_c.index[df_c['Predicted'].argmax()]
+            print("Max gt label: {0}".format(max_label))
+            # print(df_c)
+            print("\n{0} to {1}".format(label, max_label))
             # for i in range(df.shape[0]):
-            #     if df.loc[i, 'Predicted'] == label: 
+            #     if max_label != label and (df.loc[i, 'Predicted'] == label and df.loc[i, 'Ground_Truth'] == max_label): 
             #         df.loc[i, 'Predicted'] = max_label
 
-            indices = df.index[df['Predicted'] == label].tolist()
-            df.loc[indices, 'Predicted'] = max_label
+            if max_label != label: 
+                # indices = df.index[(df['Predicted'] == label) & (df['Ground_Truth'] == max_label)].tolist()
+                indices = df.index[(df['Predicted'] == label)].tolist()
+                mapped_indices[label] = indices
+                label_to_gt[label] = max_label
+            
+            # print(mapped_indices)
+            
+        for label in mapped_indices.keys():
+            mapped = mapped_indices[label]
+            max_label = label_to_gt[label]
+            df.loc[mapped, 'Predicted'] = max_label
 
         return df['Predicted'].to_numpy()
 
     @staticmethod
-    def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, cluster_algorithm, write_csv=False):
+    def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, cluster_algorithm, label_mapping = True, write_csv=False):
         data, classes = Experiment.__read_csv(dataset_name)
         clusterer_labels = []
 
@@ -95,22 +116,19 @@ class Experiment(object):
 
         if cluster_algorithm == Cluster_Algorithm.DBSCAN:
              clusterer_labels = Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
-             unique, counts = np.unique(clusterer_labels, return_counts=True)
 
         elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: 
-            clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan)
-            unique, counts = np.unique(clusterer_labels, return_counts=True)
+            clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan)          
             
         print("Cluster labels")
-        clusterer_labels = Experiment.label_mapping(clusterer_labels, classes)
+        if label_mapping: clusterer_labels = Experiment.label_mapping(clusterer_labels, classes)
+        unique, counts = np.unique(clusterer_labels, return_counts=True)
         print(dict(zip(unique, counts)))
 
         print("\nNumber of ground-truth clusters: %d" % len(set(classes)))
         print("Number of clusters found by {0}: {1}".format(cluster_algorithm.name, len(set(clusterer_labels))))
         print("FM Index ({0}): {1}".format(cluster_algorithm.name, metrics.fowlkes_mallows_score(classes, clusterer_labels)))
         print("Accuracy ({0}): {1:.10f}".format(cluster_algorithm.name, metrics.accuracy_score(classes, clusterer_labels)))
-
-        Experiment.label_mapping(clusterer_labels, classes)
 
         if write_csv:
             file_name = cluster_algorithm.name + "_" + dataset_name
@@ -174,7 +192,7 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    parameters = [["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959]]
+    parameters = [["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 0.8606]]
 
     # parameters = [
     #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959], # algorithm = 'generic
@@ -188,8 +206,10 @@ if __name__ == "__main__":
     print("BASELINE 1 EXPERIMENTS...")
     print("=========================")
     for param in parameters:
-        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, write_csv=True)
-        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, write_csv=True)
+        # Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, label_mapping = False, write_csv=True)
+        # Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, label_mapping = False, write_csv=True)
+        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, label_mapping = True, write_csv=True)
+        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, label_mapping = True, write_csv=True)
 
     # print("\n=========================")
     # print("BASELINE 2 EXPERIMENTS...")
