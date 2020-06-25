@@ -64,9 +64,6 @@ class Experiment(object):
 
     @staticmethod 
     def label_mapping(predicted_labels, gt_labels):
-        # csv = pd.read_csv(os.path.join("output_files", "HDBSCAN_cluto-t4-8k.csv"), sep=';', header = 0)
-        # predicted_labels = csv.values[:, 4].astype(int)
-        # gt_labels = csv.values[:, 3].astype(int)
         df = pd.DataFrame({'Predicted': predicted_labels, 'Ground_Truth': gt_labels})
         uniques = np.unique(predicted_labels, return_counts=False)
 
@@ -74,24 +71,13 @@ class Experiment(object):
         label_to_gt = {}
 
         for label in uniques:
-            print("\nLabel {0}".format(label))
             df_c = (df.loc[df['Predicted'] == label]).groupby('Ground_Truth').count()
-            print(df_c)
             max_label = df_c.index[df_c['Predicted'].argmax()]
-            print("Max gt label: {0}".format(max_label))
-            # print(df_c)
-            print("\n{0} to {1}".format(label, max_label))
-            # for i in range(df.shape[0]):
-            #     if max_label != label and (df.loc[i, 'Predicted'] == label and df.loc[i, 'Ground_Truth'] == max_label): 
-            #         df.loc[i, 'Predicted'] = max_label
-
+            
             if max_label != label: 
-                # indices = df.index[(df['Predicted'] == label) & (df['Ground_Truth'] == max_label)].tolist()
                 indices = df.index[(df['Predicted'] == label)].tolist()
                 mapped_indices[label] = indices
                 label_to_gt[label] = max_label
-            
-            # print(mapped_indices)
             
         for label in mapped_indices.keys():
             mapped = mapped_indices[label]
@@ -105,7 +91,6 @@ class Experiment(object):
         data, classes = Experiment.__read_csv(dataset_name)
         clusterer_labels = []
 
-        # data = StandardScaler().fit_transform(data)
         if cluster_algorithm == Cluster_Algorithm.DBSCAN: print("\nDBSCAN EXPERIMENTS...")
         if cluster_algorithm == Cluster_Algorithm.HDBSCAN: print("\nHDBSCAN EXPERIMENTS...")
         print(dataset_name.upper())
@@ -137,8 +122,6 @@ class Experiment(object):
     @staticmethod 
     def baseline1_brandao(dataset_name, eps_dbscan, minPts_dbscan):
         data, classes = Experiment.__read_csv(dataset_name)
-
-        # data = StandardScaler().fit_transform(data)
         print(dataset_name.upper())
 
         _, d_labels = DBSCAN_Brandao.dbFun(data, data, eps_dbscan, minPts_dbscan, "teste", classes)
@@ -175,9 +158,6 @@ class Experiment(object):
             data_rnd = data[rnd_idx]
             classes_rnd = classes[rnd_idx]
 
-            # if cluster_algorithm == Cluster_Algorithm.DBSCAN: 
-            #     _, d_clusterer_labels = DBSCAN_Brandao.dbFun(data_rnd, data_rnd, eps, minPts, "teste", classes_rnd, plot=False, print_strMat=False)
-
             if cluster_algorithm == Cluster_Algorithm.DBSCAN: clusterer_labels = Experiment.__run_dbscan(data_rnd, eps, minPts)
             elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: clusterer_labels = Experiment.__run_hdbscan(data_rnd, eps, minPts, min_samples)
 
@@ -192,22 +172,20 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    parameters = [["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 0.8606]]
+    # parameters = [["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959]]
 
-    # parameters = [
-    #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959], # algorithm = 'generic
-    #     ["diamond9.csv", 0.03, 12, 0.015, 12, 9, 0.7432],
-    #     ["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 0.8606],
-    #     ["cluto-t5-8k.csv", 0.02, 25, 0.012, 25, 2, 0.9122],
-    #     ["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 0.7796],
-    #     ["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 0.7556]]
+    parameters = [
+        ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959], # algorithm = 'generic
+        ["diamond9.csv", 0.03, 12, 0.015, 12, 9, 0.7432],
+        ["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 0.8606],
+        ["cluto-t5-8k.csv", 0.02, 25, 0.012, 25, 2, 0.9122],
+        ["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 0.7796],
+        ["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 0.7556]]
 
     print("=========================")
     print("BASELINE 1 EXPERIMENTS...")
     print("=========================")
     for param in parameters:
-        # Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, label_mapping = False, write_csv=True)
-        # Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, label_mapping = False, write_csv=True)
         Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.DBSCAN, label_mapping = True, write_csv=True)
         Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], Cluster_Algorithm.HDBSCAN, label_mapping = True, write_csv=True)
 
