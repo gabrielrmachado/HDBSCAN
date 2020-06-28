@@ -6,8 +6,10 @@ import pandas as pd
 import sklearn.metrics as metrics
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import normalize 
+import matplotlib.pyplot as plt
 from sklearn import preprocessing
 import itertools
+import seaborn as sns
 from random import sample
 from statistics import mean, stdev
 from enum import Enum
@@ -42,12 +44,12 @@ class Experiment(object):
     def __run_hdbscan(dataset, eps, min_cluster_size, min_samples, algorithm):
         clusterer = HDBSCAN(cluster_selection_epsilon = eps, min_cluster_size = min_cluster_size, min_samples = min_samples, 
         algorithm=algorithm)
-        return clusterer.fit_predict(dataset)
+        return clusterer, clusterer.fit_predict(dataset)
 
     @staticmethod
     def __run_dbscan(dataset, eps, min_samples):
         clusterer = DBSCAN(eps = eps, min_samples = min_samples)
-        return clusterer.fit_predict(dataset)
+        return clusterer, clusterer.fit_predict(dataset)
 
     @staticmethod
     def compute_acc(ground_truth_classes, predicted_classes):
@@ -61,6 +63,30 @@ class Experiment(object):
                     matchings = matchings + 1
                 i = i + 1
         return matchings / len(ground_truth_classes)
+
+    @staticmethod 
+    def plotHDBSCANClusters(_x, labels, title, subtitle, legend):
+        unique_labels = set(labels)
+        colors = [plt.cm.Spectral(each)
+                for each in np.linspace(0, 1, len(unique_labels))]
+
+        for k, col in zip(unique_labels, colors):
+            if k == -1:
+                # Black used for noise.
+                col = [0, 0, 0, 1]
+
+            class_member_mask = (labels == k)
+
+            xy = _x[class_member_mask]
+            plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
+                    markeredgecolor='k', markersize=5)
+            if legend:
+                plt.legend(tuple(unique_labels), loc='best')
+
+        plt.suptitle(title)
+        plt.title(subtitle)
+        plt.show()
+        return
 
     @staticmethod 
     def label_mapping(predicted_labels, gt_labels):
@@ -87,9 +113,10 @@ class Experiment(object):
         return df['Predicted'].to_numpy()
 
     @staticmethod
-    def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, hdbscan_algorithm, cluster_algorithm, label_mapping = True, write_csv=False):
+    def baseline1(dataset_name, eps_dbscan, minPts_dbscan, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, hdbscan_algorithm, cluster_algorithm, label_mapping = True, write_csv=False, plot_clusters = False):
         data, classes = Experiment.__read_csv(dataset_name)
         clusterer_labels = []
+        db = None
 
         if cluster_algorithm == Cluster_Algorithm.DBSCAN: print("\nDBSCAN EXPERIMENTS...")
         if cluster_algorithm == Cluster_Algorithm.HDBSCAN: print("\nHDBSCAN EXPERIMENTS...")
@@ -100,10 +127,10 @@ class Experiment(object):
         print(dict(zip(unique, counts)))
 
         if cluster_algorithm == Cluster_Algorithm.DBSCAN:
-             clusterer_labels = Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
+            db, clusterer_labels = Experiment.__run_dbscan(data, eps_dbscan, minPts_dbscan)
 
         elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: 
-            clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, algorithm=hdbscan_algorithm)          
+            db, clusterer_labels = Experiment.__run_hdbscan(data, eps_hdbscan, minPts_hdbscan, min_samples_hdbscan, algorithm=hdbscan_algorithm)          
             
         print("Cluster labels")
         if label_mapping: clusterer_labels = Experiment.label_mapping(clusterer_labels, classes)
@@ -118,6 +145,14 @@ class Experiment(object):
         if write_csv:
             file_name = cluster_algorithm.name + "_" + dataset_name
             Experiment.__write_csv(file_name, data, classes, clusterer_labels)
+
+        if plot_clusters:
+            if cluster_algorithm == Cluster_Algorithm.DBSCAN:
+                core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+                core_samples_mask[db.core_sample_indices_] = True
+                DBSCAN_Brandao.plotCluster(data, clusterer_labels, core_samples_mask, "", "", "")
+            else:
+                Experiment.plotHDBSCANClusters(data, clusterer_labels, "", "", "")
 
     @staticmethod 
     def baseline1_brandao(dataset_name, eps_dbscan, minPts_dbscan):
@@ -172,26 +207,26 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    # parameters = [["aggregation.csv", 0.042, 7, 0.042, 7, 9, 0.3959]]
+    parameters = [["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 'best', 0.7556]]
 
-    parameters = [
-        ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 'generic', 0.3959], # algorithm = 'generic
-        ["diamond9.csv", 0.03, 12, 0.015, 12, 9, 'best', 0.7432],
-        ["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 'best', 0.8606],
-        ["cluto-t5-8k.csv", 0.02, 25, 0.012, 25, 2, 'best', 0.9122],
-        ["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 'best', 0.7796],
-        ["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 'best', 0.7556]]
+    # parameters = [
+    #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 'generic', 0.3959], # algorithm = 'generic
+    #     ["diamond9.csv", 0.03, 12, 0.015, 12, 9, 'best', 0.7432],
+    #     ["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 'best', 0.8606],
+    #     ["cluto-t5-8k.csv", 0.02, 25, 0.012, 25, 2, 'best', 0.9122],
+    #     ["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 'best', 0.7796],
+    #     ["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 'best', 0.7556]]
 
     print("=========================")
     print("BASELINE 1 EXPERIMENTS...")
     print("=========================")
     for param in parameters:
-        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], param[6], Cluster_Algorithm.DBSCAN, label_mapping = True, write_csv=True)
-        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], param[6], Cluster_Algorithm.HDBSCAN, label_mapping = True, write_csv=True)
+        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], param[6], Cluster_Algorithm.DBSCAN, label_mapping = True, write_csv=True, plot_clusters=True)
+        Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], param[6], Cluster_Algorithm.HDBSCAN, label_mapping = True, write_csv=True, plot_clusters=True)
 
     # print("\n=========================")
     # print("BASELINE 2 EXPERIMENTS...")
     # print("=========================")
     # for param in parameters:
-    #     Experiment.baseline2(param[0], param[7], param[1], param[2], param[5], param[6], Cluster_Algorithm.DBSCAN)
+    #     # Experiment.baseline2(param[0], param[7], param[1], param[2], param[5], param[6], Cluster_Algorithm.DBSCAN)
     #     Experiment.baseline2(param[0], param[7], param[3], param[4], param[5], param[6], Cluster_Algorithm.HDBSCAN)
