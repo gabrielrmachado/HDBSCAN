@@ -42,8 +42,7 @@ class Experiment(object):
 
     @staticmethod
     def __run_hdbscan(dataset, eps, min_cluster_size, min_samples, algorithm):
-        clusterer = HDBSCAN(cluster_selection_epsilon = eps, min_cluster_size = min_cluster_size, min_samples = min_samples, 
-        algorithm=algorithm)
+        clusterer = HDBSCAN(cluster_selection_epsilon = eps, min_cluster_size = min_cluster_size, min_samples = min_samples, algorithm=algorithm)
         return clusterer, clusterer.fit_predict(dataset)
 
     @staticmethod
@@ -193,8 +192,8 @@ class Experiment(object):
             data_rnd = data[rnd_idx]
             classes_rnd = classes[rnd_idx]
 
-            if cluster_algorithm == Cluster_Algorithm.DBSCAN: clusterer_labels = Experiment.__run_dbscan(data_rnd, eps, minPts)
-            elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: clusterer_labels = Experiment.__run_hdbscan(data_rnd, eps, minPts, min_samples, algorithm=hdbscan_algorithm)
+            if cluster_algorithm == Cluster_Algorithm.DBSCAN: _, clusterer_labels = Experiment.__run_dbscan(data_rnd, eps, minPts)
+            elif cluster_algorithm == Cluster_Algorithm.HDBSCAN: _, clusterer_labels = Experiment.__run_hdbscan(data_rnd, eps, minPts, min_samples, algorithm=hdbscan_algorithm)
 
             clusterer_labels = Experiment.label_mapping(clusterer_labels, classes_rnd)
 
@@ -207,15 +206,15 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    parameters = [["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 'best', 0.7556]]
+    # parameters = [["aggregation.csv", 0.042, 7, 0.042, 7, 9, 'generic', 0.3959]]
 
-    # parameters = [
-    #     ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 'generic', 0.3959], # algorithm = 'generic
-    #     ["diamond9.csv", 0.03, 12, 0.015, 12, 9, 'best', 0.7432],
-    #     ["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 'best', 0.8606],
-    #     ["cluto-t5-8k.csv", 0.02, 25, 0.012, 25, 2, 'best', 0.9122],
-    #     ["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 'best', 0.7796],
-    #     ["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 'best', 0.7556]]
+    parameters = [
+        ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 'generic', 0.3959], # algorithm = 'generic, cluster_selection_method='leaf', algorithm='prims_kdtree'
+        ["diamond9.csv", 0.03, 12, 0.015, 12, 9, 'best', 0.7432],
+        ["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 'best', 0.8606],
+        ["cluto-t5-8k.csv", 0.02, 25, 0.012, 25, 2, 'best', 0.9122],
+        ["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 'best', 0.7796],
+        ["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 'best', 0.7556]]
 
     print("=========================")
     print("BASELINE 1 EXPERIMENTS...")
@@ -228,5 +227,5 @@ if __name__ == "__main__":
     # print("BASELINE 2 EXPERIMENTS...")
     # print("=========================")
     # for param in parameters:
-    #     # Experiment.baseline2(param[0], param[7], param[1], param[2], param[5], param[6], Cluster_Algorithm.DBSCAN)
-    #     Experiment.baseline2(param[0], param[7], param[3], param[4], param[5], param[6], Cluster_Algorithm.HDBSCAN)
+        # Experiment.baseline2(param[0], param[7], param[1], param[2], param[5], param[6], Cluster_Algorithm.DBSCAN)
+        # Experiment.baseline2(param[0], param[7], param[3], param[4], param[5], param[6], Cluster_Algorithm.HDBSCAN)
