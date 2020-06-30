@@ -206,19 +206,20 @@ class Experiment(object):
 
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    # parameters = [["aggregation.csv", 0.042, 7, 0.042, 7, 9, 'generic', 0.3959]]
+    # parameters = [["cluto-t5-8k.csv", 0.02, 25, 0.025, 32, 35, 'boruvka_kdtree', 0.9122]]
 
     parameters = [
         ["aggregation.csv", 0.042, 7, 0.042, 7, 9, 'generic', 0.3959], # algorithm = 'generic, cluster_selection_method='leaf', algorithm='prims_kdtree'
         ["diamond9.csv", 0.03, 12, 0.015, 12, 9, 'best', 0.7432],
         ["cluto-t4-8k.csv", 0.02, 25, 0.005, 23, 50, 'best', 0.8606],
-        ["cluto-t5-8k.csv", 0.02, 25, 0.012, 25, 2, 'best', 0.9122],
+        ["cluto-t5-8k.csv", 0.02, 25, 0.025, 32, 35, 'boruvka_kdtree', 0.9122],
         ["cluto-t7-10k.csv", 0.025, 28, 0.015, 28, 33, 'best', 0.7796],
         ["cluto-t8-8k.csv", 0.0218, 14, 0.02, 20, 9, 'best', 0.7556]]
 
     print("=========================")
     print("BASELINE 1 EXPERIMENTS...")
     print("=========================")
+
     for param in parameters:
         Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], param[6], Cluster_Algorithm.DBSCAN, label_mapping = True, write_csv=True, plot_clusters=True)
         Experiment.baseline1(param[0], param[1], param[2], param[3], param[4], param[5], param[6], Cluster_Algorithm.HDBSCAN, label_mapping = True, write_csv=True, plot_clusters=True)
